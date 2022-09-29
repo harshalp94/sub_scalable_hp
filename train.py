@@ -62,14 +62,13 @@ class ImageSequence(keras.utils.Sequence):
              range(self.captcha_length)]
 
         for i in range(self.batch_size):
-
-            if len(list(self.files.keys())) == 0:
-                continue
             random_image_label = random.choice(list(self.files.keys()))
             random_image_file = self.files[random_image_label]
-
+            if random_image_file in self.used_files:
+                continue
             # We've used this image now, so we can't repeat it in this iteration
-            self.used_files.append(self.files.pop(random_image_label))
+
+            self.used_files.append(self.files[random_image_label])
             # We have to scale the input pixel values to the range [0, 1] for
             # Keras so we divide by 255 since the image is 8-bit RGB
             raw_data = cv2.imread(os.path.join(self.directory_name, random_image_file))
