@@ -52,6 +52,10 @@ def main():
 
     with tf.device('/cpu:0'):
         with open(args.output, 'w') as output_file:
+            interpreter = tf.lite.Interpreter(model_path=args.lite_name)
+            in_tens = interpreter.allocate_tensors()
+            in_det = interpreter.get_input_details()
+            out_det = interpreter.get_output_details()
             json_file = open(args.model_name + '.json', 'r')
             loaded_model_json = json_file.read()
             json_file.close()
@@ -68,6 +72,10 @@ def main():
                 image = numpy.array(rgb_data) / 255.0
                 (c, h, w) = image.shape
                 image = image.reshape([-1, c, h, w])
+                input_shape = in_det[0]['shape']
+                interpreter.set_tensor(in_det[0]['index'], image)
+                interpreter.invoke()
+                prediction = interpreter.get_tensor(out_det[0]['index'])
                 prediction = model.predict(image)
                 output_file.write(x + ", " + decode(captcha_symbols, prediction) + "\n")
 
